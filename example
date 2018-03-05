@@ -7,7 +7,25 @@ source ./taskidy.sh
 #+ Some long
 #+ description
 task:hello() {
+  echo "Hello!" "$@"
+}
+
+task:print_before_exe() {
   (set -x; echo "YAY!" "$@")
+}
+
+task:exit_on_fail() {
+  set -e
+  echo "Before"
+  cat /tmp/sdfdsfdfgfghfghs
+  echo "After"
+}
+
+task:exit_on_fail_skip() {
+  set -e
+  echo "Before"
+  cat /tmp/sdfdsfdfgfghfghs || true
+  echo "After"
 }
 
 #- the default task
