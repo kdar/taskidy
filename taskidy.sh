@@ -102,6 +102,10 @@ tasksh.print_help() {
     else
       echo "No description"
     fi
+
+    echo ""
+    echo "Usage:"
+    echo "  ${TASK_FILE} $1 [args...]"
     return
   fi
 
