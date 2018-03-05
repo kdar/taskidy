@@ -6,8 +6,8 @@ source ./taskidy.sh
 #- short description
 #+ Some long
 #+ description
-task:hello() {  
-  echo "YAY!" "$@"
+task:hello() {
+  (set -x; echo "YAY!" "$@")
 }
 
 #- the default task
