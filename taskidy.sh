@@ -6,37 +6,37 @@ if [ ".$0" == ".${BASH_SOURCE[0]}" ]; then
 fi
 
 TASK_FILE="${BASH_SOURCE[1]}"
-declare -a tasksh_args=("$@")
+declare -a taskidy_args=("$@")
 declare -a TASK_FILE_SRC
 
 IFS=', ' read -r -a colors <<< "$(echo -e '\e[30m,\e[31m,\e[32m,\e[33m,\e[34m,\e[35m,\e[36m,\e[37m,\e[90m,\e[91m,\e[92m,\e[93m,\e[94m,\e[95m,\e[96m,\e[97m,\e[0m')"
-declare -A tasksh_colors
-export tasksh_colors
-tasksh_colors[fg_black]=${colors[0]}
-tasksh_colors[fg_red]=${colors[1]}
-tasksh_colors[fg_green]=${colors[2]}
-tasksh_colors[fg_yellow]=${colors[3]}
-tasksh_colors[fg_blue]=${colors[4]}
-tasksh_colors[fg_purple]=${colors[5]}
-tasksh_colors[fg_cyan]=${colors[6]}
-tasksh_colors[fg_light_gray]=${colors[7]}
-tasksh_colors[fg_gray]=${colors[8]}
-tasksh_colors[fg_light_red]=${colors[9]}
-tasksh_colors[fg_light_green]=${colors[10]}
-tasksh_colors[fg_light_yellow]=${colors[11]}
-tasksh_colors[fg_light_blue]=${colors[12]}
-tasksh_colors[fg_light_purple]=${colors[13]}
-tasksh_colors[fg_light_cyan]=${colors[14]}
-tasksh_colors[fg_white]=${colors[15]}
-tasksh_colors[reset]=${colors[16]}
+declare -A taskidy_colors
+export taskidy_colors
+taskidy_colors[fg_black]=${colors[0]}
+taskidy_colors[fg_red]=${colors[1]}
+taskidy_colors[fg_green]=${colors[2]}
+taskidy_colors[fg_yellow]=${colors[3]}
+taskidy_colors[fg_blue]=${colors[4]}
+taskidy_colors[fg_purple]=${colors[5]}
+taskidy_colors[fg_cyan]=${colors[6]}
+taskidy_colors[fg_light_gray]=${colors[7]}
+taskidy_colors[fg_gray]=${colors[8]}
+taskidy_colors[fg_light_red]=${colors[9]}
+taskidy_colors[fg_light_green]=${colors[10]}
+taskidy_colors[fg_light_yellow]=${colors[11]}
+taskidy_colors[fg_light_blue]=${colors[12]}
+taskidy_colors[fg_light_purple]=${colors[13]}
+taskidy_colors[fg_light_cyan]=${colors[14]}
+taskidy_colors[fg_white]=${colors[15]}
+taskidy_colors[reset]=${colors[16]}
 
-trap '[[ ${?} -eq 0 ]] && tasksh.init' EXIT
+trap '[[ ${?} -eq 0 ]] && taskidy.init' EXIT
 
-tasksh.is_defined() {
+taskidy.is_defined() {
   hash "${@}" 2> /dev/null
 }
 
-# tasksh.print_tasks() {
+# taskidy.print_tasks() {
 #   local SAVEIFS=$IFS
 #   IFS=$'\n'
 #   for x in $(declare -F); do
@@ -47,13 +47,13 @@ tasksh.is_defined() {
 #   IFS=$SAVEIFS
 # }
 
-tasksh.extract_help() {
+taskidy.extract_help() {
   if [ $# -eq 0 ]; then 
-    echo "usage: tasksh.extract_help <return var> <function>"
+    echo "usage: taskidy.extract_help <return var> <function>"
     return
   fi
 
-  if ! tasksh.is_defined "$2"; then    
+  if ! taskidy.is_defined "$2"; then    
     return 1
   fi
 
@@ -91,12 +91,12 @@ tasksh.extract_help() {
   fi
 }
 
-tasksh.print_help() {
+taskidy.print_help() {
   if [ ${#} -gt 0 ]; then
     declare -a result    
-    if ! tasksh.extract_help result "task:$1"; then
-      echo -e "${tasksh_colors[fg_red]}Error${tasksh_colors[reset]}: Unknown task: $1"
-      tasksh.print_help
+    if ! taskidy.extract_help result "task:$1"; then
+      echo -e "${taskidy_colors[fg_red]}Error${taskidy_colors[reset]}: Unknown task: $1"
+      taskidy.print_help
       return
     fi
 
@@ -122,9 +122,9 @@ tasksh.print_help() {
   IFS=$'\n'
   for x in $(declare -F); do
     if [[ "$x" == "declare -f task:"* ]]; then 
-      tasksh.extract_help result "${x:11}"
+      taskidy.extract_help result "${x:11}"
       local newout
-      newout=$(echo -e "${tasksh_colors[fg_yellow]}${x:16}${tasksh_colors[reset]} \\035 ${result[0]}")
+      newout=$(echo -e "${taskidy_colors[fg_yellow]}${x:16}${taskidy_colors[reset]} \\035 ${result[0]}")
       output="$output\\n$newout\\n"
     fi
   done
@@ -136,23 +136,23 @@ tasksh.print_help() {
   echo Use "${TASK_FILE} help [task]" for more information about a task.
 }
 
-tasksh.init() {
+taskidy.init() {
   trap - EXIT
   
-  if [[ ${#tasksh_args[@]} -gt 0 ]]; then
-    if tasksh.is_defined "task:${tasksh_args[0]}"; then
-      "task:${tasksh_args[0]}" "${tasksh_args[@]:1}"
-    elif [ "${tasksh_args[0]}" = "help" ]; then
-      tasksh.print_help "${tasksh_args[@]:1}"
+  if [[ ${#taskidy_args[@]} -gt 0 ]]; then
+    if taskidy.is_defined "task:${taskidy_args[0]}"; then
+      "task:${taskidy_args[0]}" "${taskidy_args[@]:1}"
+    elif [ "${taskidy_args[0]}" = "help" ]; then
+      taskidy.print_help "${taskidy_args[@]:1}"
     else
-      echo "Unknown task \"${tasksh_args[0]}\""
-      tasksh.print_help
+      echo "Unknown task \"${taskidy_args[0]}\""
+      taskidy.print_help
     fi
 
     return
   fi
 
-  if tasksh.is_defined "task:default"; then
-    task:default "${tasksh_args[@]}"
+  if taskidy.is_defined "task:default"; then
+    task:default "${taskidy_args[@]}"
   fi
 }
