@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+
+cd "$( dirname "${BASH_SOURCE[0]}" )" || exit
+source ./taskidy.sh
+
+#- short description
+#+ Some long
+#+ description
+task:hello() {  
+  echo "YAY!" "$@"
+}
+
+#- the default task
+#+ The task that is execute if no task is
+#+ provided on the CLI.
+task:default() {
+  echo "default" "$@"
+}
