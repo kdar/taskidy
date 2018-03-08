@@ -42,6 +42,19 @@ task:exit-on-fail-skip() {
   echo "After"
 }
 
+# Recompiles if source has changed
+# This task will recompile a C program if the source
+# files have changed.
+task:depend-on() {
+  local inputs=(testdata/depend/src/*.{c,h})
+  local outputs=(testdata/depend/dist/main)
+  if taskidy.is_modified_after inputs outputs; then
+    echo "Recompiling..."
+    gcc -o testdata/depend/dist/main testdata/depend/src/main.c
+    echo "Done"
+  fi
+}
+
 # The default task
 # The task that is executed if no task is
 # provided on the CLI.

@@ -171,6 +171,27 @@ taskidy.print_help() {
   echo Use "${TASK_FILE} help [task]" for more information about a task.
 }
 
+taskidy.is_modified_after() {
+  local -n _inputs=$1
+  local -n _outputs=$2
+  local min_timestamp=0
+  for i in "${_outputs[@]}"; do
+    local cur
+    cur=$(stat -c %Y "$i" 2>/dev/null || echo 0)
+    if [ "$min_timestamp" -eq 0 ] || [ "$cur" -lt "$min_timestamp" ]; then
+      min_timestamp=$cur
+    fi
+  done
+  for i in "${_inputs[@]}"; do
+    local cur
+    cur=$(stat -c %Y "$i")
+    if [ "$cur" -gt "$min_timestamp" ]; then
+      return 0
+    fi
+  done
+  return 1
+}
+
 taskidy.__init() {
   trap - EXIT
   
