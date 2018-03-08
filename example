@@ -3,17 +3,27 @@
 cd "$( dirname "${BASH_SOURCE[0]}" )" || exit
 source ./taskidy.sh
 
-#- short description
-#+ Some long
-#+ description
+# Says hello to you
+# Some long
+# description
+#
+# Usage:
+#   ./taskfile hello [args...]
 task:hello() {
-  echo "Hello!" "$@"
+  echo "Hello" "$@" "!"
 }
 
+# Prints the statement before executing
+# This uses set -x to print the statement before
+# running it. This particular example shows how
+# to use a subshell so you don't actually print
+# out "set -x".
 task:print-before-exe() {
   (set -x; echo "YAY!" "$@")
 }
 
+# Exits the task on failure
+# Uses set -e to exit the task when a command fails.
 task:exit-on-fail() {
   set -e
   echo "Before"
@@ -21,6 +31,10 @@ task:exit-on-fail() {
   echo "After"
 }
 
+# Exits the task on failure, except when skipped
+# Uses set -e to exit the task when a command fails,
+# but shows how you can ignore the return value of
+# a command in case you don't care if it fails.
 task:exit-on-fail-skip() {
   set -e
   echo "Before"
@@ -28,9 +42,9 @@ task:exit-on-fail-skip() {
   echo "After"
 }
 
-#- the default task
-#+ The task that is execute if no task is
-#+ provided on the CLI.
+# The default task
+# The task that is executed if no task is
+# provided on the CLI.
 task:default() {
   echo "default" "$@"
 }
