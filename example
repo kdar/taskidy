@@ -10,18 +10,18 @@ task:hello() {
   echo "Hello!" "$@"
 }
 
-task:print_before_exe() {
+task:print-before-exe() {
   (set -x; echo "YAY!" "$@")
 }
 
-task:exit_on_fail() {
+task:exit-on-fail() {
   set -e
   echo "Before"
   cat /tmp/sdfdsfdfgfghfghs
   echo "After"
 }
 
-task:exit_on_fail_skip() {
+task:exit-on-fail-skip() {
   set -e
   echo "Before"
   cat /tmp/sdfdsfdfgfghfghs || true
