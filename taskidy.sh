@@ -30,9 +30,9 @@ taskidy_colors[fg_light_cyan]=${colors[14]}
 taskidy_colors[fg_white]=${colors[15]}
 taskidy_colors[reset]=${colors[16]}
 
-trap '[[ ${?} -eq 0 ]] && taskidy.init' EXIT
+trap '[[ ${?} -eq 0 ]] && taskidy.__init' EXIT
 
-taskidy.is_defined() {
+taskidy.__is_defined() {
   hash "${@}" 2> /dev/null
 }
 
@@ -47,13 +47,13 @@ taskidy.is_defined() {
 #   IFS=$SAVEIFS
 # }
 
-taskidy.extract_help() {
+taskidy.__extract_help() {
   if [ $# -eq 0 ]; then 
     echo "usage: taskidy.extract_help <return var> <function>"
     return
   fi
 
-  if ! taskidy.is_defined "$2"; then    
+  if ! taskidy.__is_defined "$2"; then    
     return 1
   fi
 
@@ -61,6 +61,7 @@ taskidy.extract_help() {
     readarray -t TASK_FILE_SRC < "$TASK_FILE"
   fi
 
+  local var
   declare -n var=$1
 
   shopt -s extdebug
@@ -91,10 +92,27 @@ taskidy.extract_help() {
   fi
 }
 
+taskidy.__sorted_task_fns() {
+  local var
+  declare -n var=$1
+
+  local SAVEIFS=$IFS
+  IFS=$'\n'
+  for x in $(declare -F); do
+    if [[ "$x" == "declare -f task:"* ]]; then
+      shopt -s extdebug
+      IFS=', ' read -r -a func_info <<< "$(declare -F "${x:11}")"
+      shopt -u extdebug
+      var[func_info[1]]="${x:11}"
+    fi
+  done
+  IFS=$SAVEIFS
+}
+
 taskidy.print_help() {
   if [ ${#} -gt 0 ]; then
     declare -a result    
-    if ! taskidy.extract_help result "task:$1"; then
+    if ! taskidy.__extract_help result "task:$1"; then
       echo -e "${taskidy_colors[fg_red]}Error${taskidy_colors[reset]}: Unknown task: $1"
       taskidy.print_help
       return
@@ -118,17 +136,14 @@ taskidy.print_help() {
 
   echo "Available tasks:"
   local output=""
-  local SAVEIFS=$IFS
-  IFS=$'\n'
-  for x in $(declare -F); do
-    if [[ "$x" == "declare -f task:"* ]]; then 
-      taskidy.extract_help result "${x:11}"
-      local newout
-      newout=$(echo -e "${taskidy_colors[fg_yellow]}${x:16}${taskidy_colors[reset]} \\035 ${result[0]}")
-      output="$output\\n$newout\\n"
-    fi
+  declare -a result
+  taskidy.__sorted_task_fns result
+  for x in "${result[@]}"; do
+    taskidy.__extract_help result "${x}"
+    local newout
+    newout=$(echo -e "${taskidy_colors[fg_yellow]}${x:5}${taskidy_colors[reset]} \\035 ${result[0]}")
+    output="$output\\n$newout\\n"
   done
-  IFS=$SAVEIFS
 
   echo -ne "$output" |column -t -s "$(echo -e '\035')" | sed 's/^/  /'
 
@@ -136,11 +151,11 @@ taskidy.print_help() {
   echo Use "${TASK_FILE} help [task]" for more information about a task.
 }
 
-taskidy.init() {
+taskidy.__init() {
   trap - EXIT
   
   if [[ ${#taskidy_args[@]} -gt 0 ]]; then
-    if taskidy.is_defined "task:${taskidy_args[0]}"; then
+    if taskidy.__is_defined "task:${taskidy_args[0]}"; then
       "task:${taskidy_args[0]}" "${taskidy_args[@]:1}"
     elif [ "${taskidy_args[0]}" = "help" ]; then
       taskidy.print_help "${taskidy_args[@]:1}"
@@ -152,7 +167,7 @@ taskidy.init() {
     return
   fi
 
-  if taskidy.is_defined "task:default"; then
+  if taskidy.__is_defined "task:default"; then
     task:default "${taskidy_args[@]}"
   fi
 }
