@@ -47,6 +47,15 @@ taskidy.__is_defined() {
 #   IFS=$SAVEIFS
 # }
 
+taskidy.__trim() {
+  local var=$*
+  # remove leading whitespace characters
+  var="${var#"${var%%[![:space:]]*}"}"
+  # remove trailing whitespace characters
+  var="${var%"${var##*[![:space:]]}"}"   
+  echo -n "$var"
+}
+
 taskidy.__extract_help() {
   if [ $# -eq 0 ]; then 
     echo "usage: taskidy.extract_help <return var> <function>"
@@ -73,23 +82,34 @@ taskidy.__extract_help() {
 
   local i
   i=$((func_info[1] - 2))
+  local end=$i
+  local found_comment=0
   while [ $i -gt 0 ]; do
-    if [[ ${TASK_FILE_SRC[$i]} == \#+* ]]; then
-      var[1]="${TASK_FILE_SRC[$i]:3}\\n${var[1]}"
-    elif [[ ${TASK_FILE_SRC[$i]} == \#-* ]]; then
-      var[0]="${TASK_FILE_SRC[$i]:3}\\n${var[0]}"
+    if [[ ${TASK_FILE_SRC[$i]} == \#* ]]; then
+      found_comment=1
     else
       break
     fi
     i=$((i - 1))
   done
+
+  if [ $found_comment -eq 0 ]; then
+    return 1
+  fi
+
+  i=$((i + 1))
+  local start=$i
+  while [ $i -le $end ]; do
+    if [ $i -eq $start ]; then
+      var[0]="${TASK_FILE_SRC[$i]:2}"      
+    else
+      var[1]="${var[1]}\\n${TASK_FILE_SRC[$i]:2}"
+    fi
+    i=$((i + 1))
+  done
   
-  if [ ${#var[0]} -gt 0 ]; then
-    var[0]="${var[0]::-2}"
-  fi
-  if [ ${#var[1]} -gt 0 ]; then
-    var[1]="${var[1]::-2}"
-  fi
+  # var[0]=$(taskidy.__trim "${var[0]}")
+  var[1]=$(taskidy.__trim "$(echo -e "${var[1]}")")
 }
 
 taskidy.__sorted_task_fns() {
@@ -124,9 +144,9 @@ taskidy.print_help() {
       echo "No description"
     fi
 
-    echo ""
-    echo "Usage:"
-    echo "  ${TASK_FILE} $1 [args...]"
+    # echo ""
+    # echo "Usage:"
+    # echo "  ${TASK_FILE} $1 [args...]"
     return
   fi
 
