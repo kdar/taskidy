@@ -171,7 +171,7 @@ taskidy.print_help() {
   echo Use "${TASK_FILE} help [task]" for more information about a task.
 }
 
-taskidy.is_modified_after() {
+taskidy.timestamp_depend() {
   local -n _inputs=$1
   local -n _outputs=$2
   local min_timestamp=0
