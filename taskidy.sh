@@ -62,7 +62,7 @@ taskidy.print_help() {
   declare -a result
   taskidy.__sorted_tasks result
   for x in "${result[@]}"; do
-    taskidy.__extract_help result "${x}"
+    taskidy.__extract_help result "task:${x}"
     local newout
     newout=$(echo -e "${taskidy_colors[fg_yellow]}${x}${taskidy_colors[reset]} \\035 ${result[0]}")
     output="$output\\n$newout\\n"
