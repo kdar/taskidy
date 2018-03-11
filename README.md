@@ -62,7 +62,7 @@ Prints the help as if you were to type `./taskfile help`.
 
 This allows you to have dependencies like make. It takes an array of inputs and an array of outputs, and if any inputs' modified timestamp is later than any of the outputs' modified timestamp, it returns 0 (true).
 
-```
+```bash
 task:depend-on() {
   local -a inputs=(testdata/depend/src/*.{c,h})
   local -a outputs=(testdata/depend/dist/main)
@@ -78,7 +78,7 @@ task:depend-on() {
 
 Run functions/cmds in parallel, returning 0 if successful and >0 for how many of them failed.
 
-```
+```bash
 parallel1() {
   sleep 2
   echo "parallel1: done"
