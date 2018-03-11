@@ -55,6 +55,25 @@ task:depend-on() {
   fi
 }
 
+parallel1() {
+  sleep 2
+  echo "parallel1: done"
+}
+
+parallel2() {
+  sleep 3
+  echo "parallel2: done"
+  # return 1
+}
+
+task:parallel() {
+  if taskidy.parallel parallel1 parallel2; then
+    echo "All exited successfully"
+  else
+    echo "There was an error!"
+  fi
+}
+
 # The default task
 # The task that is executed if no task is
 # provided on the CLI.

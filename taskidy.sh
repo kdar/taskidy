@@ -32,8 +32,82 @@ taskidy_colors[reset]=${colors[16]}
 
 trap '[[ ${?} -eq 0 ]] && taskidy.__main' EXIT
 
-taskidy.__is_defined() {
-  hash "${@}" 2> /dev/null
+taskidy.print_help() {
+  if [ ${#} -gt 0 ]; then
+    declare -a result    
+    if ! taskidy.__extract_help result "task:$1"; then
+      echo -e "${taskidy_colors[fg_red]}Error${taskidy_colors[reset]}: Unknown task: $1"
+      taskidy.print_help
+      return
+    fi
+
+    if [ ${#result[1]} -gt 0 ]; then
+      echo -e "${result[1]}"
+    else
+      echo "No description"
+    fi
+
+    # echo ""
+    # echo "Usage:"
+    # echo "  ${TASK_FILE} $1 [args...]"
+    return
+  fi
+
+  echo "Usage:"
+  echo "  ${TASK_FILE} <task> [args...]"
+  echo ""
+
+  echo "Available tasks:"
+  local output=""
+  declare -a result
+  taskidy.__sorted_tasks result
+  for x in "${result[@]}"; do
+    taskidy.__extract_help result "${x}"
+    local newout
+    newout=$(echo -e "${taskidy_colors[fg_yellow]}${x}${taskidy_colors[reset]} \\035 ${result[0]}")
+    output="$output\\n$newout\\n"
+  done
+
+  echo -ne "$output" |column -t -s "$(echo -e '\035')" | sed 's/^/  /'
+
+  echo ""
+  echo Use "${TASK_FILE} help [task]" for more information about a task.
+}
+
+taskidy.timestamp_depend() {
+  local -n _inputs=$1
+  local -n _outputs=$2
+  local min_timestamp=0
+  for i in "${_outputs[@]}"; do
+    local cur
+    cur=$(stat -c %Y "$i" 2>/dev/null || echo 0)
+    if [ "$min_timestamp" -eq 0 ] || [ "$cur" -lt "$min_timestamp" ]; then
+      min_timestamp=$cur
+    fi
+  done
+  for i in "${_inputs[@]}"; do
+    local cur
+    cur=$(stat -c %Y "$i")
+    if [ "$cur" -gt "$min_timestamp" ]; then
+      return 0
+    fi
+  done
+  return 1
+}
+
+taskidy.parallel() {
+  local -a pids
+  local -i failed=0
+
+  for func in "${@}"; do
+    "${func}" & pids+=(${!})
+  done
+
+  for pid in "${pids[@]}"; do
+    wait "${pid}" || failed+=1
+  done
+
+  return $failed
 }
 
 # taskidy.print_tasks() {
@@ -46,6 +120,10 @@ taskidy.__is_defined() {
 #   done
 #   IFS=$SAVEIFS
 # }
+
+taskidy.__is_defined() {
+  hash "${@}" 2> /dev/null
+}
 
 taskidy.__trim() {
   local var=$*
@@ -127,69 +205,6 @@ taskidy.__sorted_tasks() {
     fi
   done
   IFS=$SAVEIFS
-}
-
-taskidy.print_help() {
-  if [ ${#} -gt 0 ]; then
-    declare -a result    
-    if ! taskidy.__extract_help result "task:$1"; then
-      echo -e "${taskidy_colors[fg_red]}Error${taskidy_colors[reset]}: Unknown task: $1"
-      taskidy.print_help
-      return
-    fi
-
-    if [ ${#result[1]} -gt 0 ]; then
-      echo -e "${result[1]}"
-    else
-      echo "No description"
-    fi
-
-    # echo ""
-    # echo "Usage:"
-    # echo "  ${TASK_FILE} $1 [args...]"
-    return
-  fi
-
-  echo "Usage:"
-  echo "  ${TASK_FILE} <task> [args...]"
-  echo ""
-
-  echo "Available tasks:"
-  local output=""
-  declare -a result
-  taskidy.__sorted_tasks result
-  for x in "${result[@]}"; do
-    taskidy.__extract_help result "${x}"
-    local newout
-    newout=$(echo -e "${taskidy_colors[fg_yellow]}${x}${taskidy_colors[reset]} \\035 ${result[0]}")
-    output="$output\\n$newout\\n"
-  done
-
-  echo -ne "$output" |column -t -s "$(echo -e '\035')" | sed 's/^/  /'
-
-  echo ""
-  echo Use "${TASK_FILE} help [task]" for more information about a task.
-}
-
-taskidy.timestamp_depend() {
-  local -n _inputs=$1
-  local -n _outputs=$2
-  local min_timestamp=0
-  for i in "${_outputs[@]}"; do
-    local cur
-    cur=$(stat -c %Y "$i" 2>/dev/null || echo 0)
-    if [ "$min_timestamp" -eq 0 ] || [ "$cur" -lt "$min_timestamp" ]; then
-      min_timestamp=$cur
-    fi
-  done
-  for i in "${_inputs[@]}"; do
-    local cur
-    cur=$(stat -c %Y "$i")
-    if [ "$cur" -gt "$min_timestamp" ]; then
-      return 0
-    fi
-  done
-  return 1
 }
 
 taskidy.__completion() {
