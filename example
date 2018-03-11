@@ -46,8 +46,10 @@ task:exit-on-fail-skip() {
 # This task will recompile a C program if the source
 # files have changed.
 task:depend-on() {
-  local inputs=(testdata/depend/src/*.{c,h})
-  local outputs=(testdata/depend/dist/main)
+  # shellcheck disable=SC2034
+  local -a inputs=(testdata/depend/src/*.{c,h})
+  # shellcheck disable=SC2034
+  local -a outputs=(testdata/depend/dist/main)
   if taskidy.timestamp_depend inputs outputs; then
     echo "Recompiling..."
     gcc -o testdata/depend/dist/main testdata/depend/src/main.c
