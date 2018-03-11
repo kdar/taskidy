@@ -224,7 +224,7 @@ taskidy.__completion() {
 EOF
     # elif [ "$shell" = "bash" ]; then
     #   echo "Bash"
-    # fi
+    fi
 
     exit 0
   elif [ "${taskidy_args[0]}" = "--cmplt" ]; then
