@@ -37,7 +37,7 @@ task:default() {
 ```
 
 ```bash
-./taskfile hello
+./taskfile hello kdar
 > Hello kdar !
 ```
 
