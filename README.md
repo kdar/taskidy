@@ -46,10 +46,57 @@ Usage:
   ./taskfile <task> [args...]
 
 Available tasks:
-  default    the default task
   hello      short description
+  default    the default task  
 
 Use ./taskfile help [task] for more information about a task.
+```
+
+## Public functions
+
+### taskidy.print_help [task]
+
+Prints the help as if you were to type `./taskfile help`.
+
+### taskidy.timestamp_depend <inputs> <outputs>
+
+This allows you to have dependencies like make. It takes an array of inputs and an array of outputs, and if any inputs' modified timestamp is later than any of the outputs' modified timestamp, it returns 0 (true).
+
+```
+task:depend-on() {
+  local -a inputs=(testdata/depend/src/*.{c,h})
+  local -a outputs=(testdata/depend/dist/main)
+  if taskidy.timestamp_depend inputs outputs; then
+    echo "Recompiling..."
+    gcc -o testdata/depend/dist/main testdata/depend/src/main.c
+    echo "Done"
+  fi
+}
+```
+
+### taskidy.parallel [func...]
+
+Run functions/cmds in parallel, returning 0 if successful and >0 for how many of them failed.
+
+```
+parallel1() {
+  sleep 2
+  echo "parallel1: done"
+}
+
+parallel2() {
+  sleep 3
+  echo "parallel2: done"
+  # return 1
+}
+
+task:parallel() {
+  if taskidy.parallel parallel1 parallel2; then
+    echo "All exited successfully"
+  else
+    echo "There was an error!"
+  fi
+}
 ```
 
 ## Contributing
