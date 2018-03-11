@@ -68,6 +68,9 @@ parallel2() {
   # return 1
 }
 
+# Runs some functions in parallel
+# This will run two functions in parallel and report
+# whether it was successful or not.
 task:parallel() {
   if taskidy.parallel parallel1 parallel2; then
     echo "All exited successfully"
