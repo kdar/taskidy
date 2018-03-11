@@ -79,6 +79,16 @@ task:parallel() {
   fi
 }
 
+# Runs some code in python
+# This will run some code in python. This demonstrates
+# how you can use other interpreters to gain a little
+# more power.
+task:python() {
+  python << EOF
+print("Hello from python!")
+EOF
+}
+
 # The default task
 # The task that is executed if no task is
 # provided on the CLI.
