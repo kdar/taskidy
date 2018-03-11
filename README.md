@@ -25,7 +25,7 @@ source ./taskidy.sh
 # Some long
 # description
 task:hello() {  
-  echo "YAY!" "$@"
+  echo "Hello" "$@" "!"
 }
 
 # the default task
@@ -38,6 +38,7 @@ task:default() {
 
 ```bash
 ./taskfile hello
+> Hello kdar !
 ```
 
 ```bash
