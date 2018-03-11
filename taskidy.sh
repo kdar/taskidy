@@ -30,7 +30,7 @@ taskidy_colors[fg_light_cyan]=${colors[14]}
 taskidy_colors[fg_white]=${colors[15]}
 taskidy_colors[reset]=${colors[16]}
 
-trap '[[ ${?} -eq 0 ]] && taskidy.__init' EXIT
+trap '[[ ${?} -eq 0 ]] && taskidy.__main' EXIT
 
 taskidy.__is_defined() {
   hash "${@}" 2> /dev/null
@@ -112,7 +112,7 @@ taskidy.__extract_help() {
   var[1]=$(taskidy.__trim "$(echo -e "${var[1]}")")
 }
 
-taskidy.__sorted_task_fns() {
+taskidy.__sorted_tasks() {
   local var
   declare -n var=$1
 
@@ -123,7 +123,7 @@ taskidy.__sorted_task_fns() {
       shopt -s extdebug
       IFS=', ' read -r -a func_info <<< "$(declare -F "${x:11}")"
       shopt -u extdebug
-      var[func_info[1]]="${x:11}"
+      var[func_info[1]]="${x:16}"
     fi
   done
   IFS=$SAVEIFS
@@ -157,11 +157,11 @@ taskidy.print_help() {
   echo "Available tasks:"
   local output=""
   declare -a result
-  taskidy.__sorted_task_fns result
+  taskidy.__sorted_tasks result
   for x in "${result[@]}"; do
     taskidy.__extract_help result "${x}"
     local newout
-    newout=$(echo -e "${taskidy_colors[fg_yellow]}${x:5}${taskidy_colors[reset]} \\035 ${result[0]}")
+    newout=$(echo -e "${taskidy_colors[fg_yellow]}${x}${taskidy_colors[reset]} \\035 ${result[0]}")
     output="$output\\n$newout\\n"
   done
 
@@ -192,8 +192,55 @@ taskidy.timestamp_depend() {
   return 1
 }
 
-taskidy.__init() {
+taskidy.__completion() {
+  if [ "${taskidy_args[0]}" = "--completions" ]; then
+    # From: https://github.com/rbenv/rbenv
+    shell="$(ps -p "$PPID" -o 'args=' 2>/dev/null || true)"
+    shell="${shell%% *}"
+    shell="${shell##-}"
+    shell="${shell:-$SHELL}"
+    shell="${shell##*/}"
+
+    if [ "$shell" = "zsh" ]; then
+      cat <<EOF
+      _taskidy_completion() {
+        local -a subcmds
+        #subcmds=('hey:description for c command' 'there:description for d command')
+        subcmds="\$($TASK_FILE --cmplt "\${word}")"
+        subcmds=(\${(ps:\\n:)subcmds})
+        _describe 'command' subcmds
+      }
+
+      compdef _taskidy_completion example
+
+      # _taskidy_complete() {
+      #   local word completions
+      #   word="\$1"
+      #   completions="\$($TASK_FILE --cmplt "\${word}")"
+      #   reply=( "\${(ps:\\n:)completions}" )
+      # }
+
+      # compctl -f -K _taskidy_complete $TASK_FILE
+EOF
+    # elif [ "$shell" = "bash" ]; then
+    #   echo "Bash"
+    # fi
+
+    exit 0
+  elif [ "${taskidy_args[0]}" = "--cmplt" ]; then
+    taskidy.__sorted_tasks result
+    for x in "${result[@]}"; do
+      echo "$x"
+    done
+
+    exit 0
+  fi
+}
+
+taskidy.__main() {
   trap - EXIT
+
+  taskidy.__completion
   
   if [[ ${#taskidy_args[@]} -gt 0 ]]; then
     if taskidy.__is_defined "task:${taskidy_args[0]}"; then
