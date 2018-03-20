@@ -160,8 +160,8 @@ taskidy.__extract_help() {
 
   local i
   i=$((func_info[1] - 2))
-  local end=$i
-  local found_comment=0
+  local -i end=$i
+  local -i found_comment=0
   while [ $i -gt 0 ]; do
     if [[ ${TASK_FILE_SRC[$i]} == \#* ]]; then
       found_comment=1
