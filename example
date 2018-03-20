@@ -89,6 +89,51 @@ print("Hello from python!")
 EOF
 }
 
+# Runs some code in rust
+# This will run some code in rust. This demonstrates
+# how you can use compiled languages to gain a little
+# more power. Most likely better to put this in a file
+# instead.
+task:rust() {
+  script="/tmp/rusttaskidy"
+  command -v cargo-script >/dev/null 2>&1 || { echo >&2 "cargo-script not installed"; exit 1; }
+
+  read -r -d '' code <<"EOF"
+//! This is a regular crate doc comment, but it also contains a partial
+//! Cargo manifest.  Note the use of a *fenced* code block, and the
+//! `cargo` "language".
+//!
+//! ```cargo
+//! [dependencies]
+//! time = "0.1.25"
+//! ```
+extern crate time;
+fn main() {
+  println!("{}", time::now().rfc822z());
+}
+EOF
+
+  has_changed() {
+    [ ! -f "$script" ] && return 0
+
+    md5a="$(md5sum "${script}")"
+    md5b="$(echo "$code" | md5sum)"
+    
+    if [[ "${md5a%% *}" == "${md5b%% *}" ]]; then
+      return 1
+    fi
+
+    return 0
+  }
+  
+  # Put the new code in the file
+  if has_changed; then
+    echo "$code" > "$script"
+  fi
+
+  cargo script "$script"
+}
+
 # The default task
 # The task that is executed if no task is
 # provided on the CLI.
