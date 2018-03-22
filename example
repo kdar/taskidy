@@ -140,3 +140,34 @@ EOF
 task:default() {
   echo "default" "$@"
 }
+
+# compgen -A function
+
+
+# task new
+#   short "hey"
+#   long "there"
+#   func() {
+#     echo "hey"
+#   }
+# endtask
+
+# taskidy.__extract_help result "task:rust"
+# echo "${result[@]}"
+# shopt -s extdebug
+# echo "$(declare -f "task:rust")"
+
+
+# d() {
+#     if [[ "${BASH_COMMAND}" == echo* ]] ; then
+#         echo ">> $(caller 0) | $(caller 1) | ${BASH_COMMAND} <<"
+#     fi
+# }
+#   shopt -s extdebug
+# set -o functrace
+# trap d DEBUG
+
+  # shopt -s extdebug
+  # echo "$(declare -f task:rust)"
+  # echo "${FUNCNAME[@]}"
+

@@ -159,10 +159,30 @@ taskidy.__extract_help() {
   var[1]=""
 
   local i
-  i=$((func_info[1] - 2))
+  # Subtract 1 since the number given is 1 indexed
+  i=$((func_info[1] - 1))
+  
+  # This will try to find the function definition, in order to parse
+  # the comments. We do this because bash does something weird when
+  # trying to get the function location when there is a nested function.
+  # If we have:
+  #    parent() {
+  #      child() {
+  #      }
+  #    }
+  # and try to get the line # of the parent() function, bash will actually
+  # return the line # of the child() function. So here, we step up through
+  # the source until we match the real task function.
+  while [ $i -ge 0 ] && ! [[ "${TASK_FILE_SRC[$i]}" =~ ^[:blank:]*(function )?[:blank:]*$2[[:blank:]\(\)\{]* ]]; do
+    i=$((i - 1))
+  done
+  i=$((i - 1)) # get to the comment line
+
   local -i end=$i
   local -i found_comment=0
-  while [ $i -gt 0 ]; do
+
+  # Try to find the task comment and if we do, find the first line.
+  while [ $i -ge 0 ]; do
     if [[ ${TASK_FILE_SRC[$i]} == \#* ]]; then
       found_comment=1
     else
